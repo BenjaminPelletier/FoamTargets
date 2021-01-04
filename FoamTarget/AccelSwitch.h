@@ -63,7 +63,7 @@ class AccelSwitch {
     unsigned long lastNominal;
     bool active;
 
-    void debugRegister(String register_name, uint8_t register_value);
+    String debugRegister(String register_name, uint8_t register_value);
     void writeRegister(uint8_t slave_register, uint8_t value);
     uint8_t readRegister(uint8_t slave_register);
     void readAccelerometer();
@@ -74,30 +74,32 @@ class AccelSwitch {
     int16_t x;
     int16_t y;
     int16_t z;
+    int count;
 
     void configure(int pin_a0);
     void init(unsigned long t);
     uint8_t measure(unsigned long t);
-    void debug();
+    String debug();
 };
 
-void AccelSwitch::debugRegister(String register_name, uint8_t register_value) {
-  Serial.print("0b");
+String AccelSwitch::debugRegister(String register_name, uint8_t register_value) {
+  String response = "0b";
   uint8_t v = register_value;
   for (uint8_t i = 0; i < 8; i++) {
-    Serial.print(v >= 0x80 ? '1' : '0');
+    response += v >= 0x80 ? '1' : '0';
     v <<= 1;
   }
-  Serial.print(" 0x");
+  response += " 0x";
   v = register_value >> 4;
-  Serial.print((char)((v <= 9 ? '0' : '7') + v));
+  response += (char)((v <= 9 ? '0' : '7') + v);
   v = register_value & 0x0F;
-  Serial.print((char)((v <= 9 ? '0' : '7') + v));
-  Serial.print(' ');
-  Serial.print(register_value);
-  Serial.print(' ');
-  Serial.print(register_name);
-  Serial.println();
+  response += (char)((v <= 9 ? '0' : '7') + v);
+  response += ' ';
+  response += register_value;
+  response += ' ';
+  response += register_name;
+  response += '\n';
+  return response;
 }
 
 void AccelSwitch::writeRegister(uint8_t slave_register, uint8_t value) {
@@ -149,16 +151,17 @@ void AccelSwitch::init(unsigned long t) {
   }
 }
 
-void AccelSwitch::debug() {
+String AccelSwitch::debug() {
   // Read back registers to verify configuration
   digitalWrite(pinA0, ACCEL_ON);
-  debugRegister("WHO_AMI_I", readRegister(WHO_AM_I));
-  debugRegister("SMPLRT_DIV", readRegister(SMPLRT_DIV));
-  debugRegister("CONFIG", readRegister(CONFIG));
-  debugRegister("PWR_MGMT_1", readRegister(PWR_MGMT_1));
-  debugRegister("GYRO_CONFIG", readRegister(GYRO_CONFIG));
-  debugRegister("ACCEL_CONFIG", readRegister(ACCEL_CONFIG));
+  String response = debugRegister("WHO_AM_I", readRegister(WHO_AM_I));
+  response += debugRegister("SMPLRT_DIV", readRegister(SMPLRT_DIV));
+  response += debugRegister("CONFIG", readRegister(CONFIG));
+  response += debugRegister("PWR_MGMT_1", readRegister(PWR_MGMT_1));
+  response += debugRegister("GYRO_CONFIG", readRegister(GYRO_CONFIG));
+  response += debugRegister("ACCEL_CONFIG", readRegister(ACCEL_CONFIG));
   digitalWrite(pinA0, ACCEL_OFF);
+  return response;
 }
 
 void AccelSwitch::readAccelerometer() {
@@ -192,6 +195,7 @@ uint8_t AccelSwitch::measure(unsigned long t) {
     if (!active) {
       active = true;
       result = MEASURE_BECAME_ACTIVE;
+      count++;
     }
     lastDeviation = t;
   } else if (t > lastDeviation + DEBOUNCE_MS) {

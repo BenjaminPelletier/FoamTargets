@@ -36,7 +36,7 @@
   // https://randomnerdtutorials.com/esp8266-pinout-reference-gpios/
   const int PIN_MPU_A0[] = {16, 0, 12}; // D0=GPIO16, D3=GPIO0, D6=GPIO12, D7=GPIO13, D8=GPIO15
   const int PIN_LED = 2; // D4=GPIO2
-  const uint8_t PIN_RGB_DATA = 14; // D5=GPIO14
+  const uint8_t PIN_RGB_DATA = 14; // D5=GPIO14 (or D7=GPIO13)
   const uint8_t PIN_SCL = 5; // D1=GPIO5 -> SCL
   const uint8_t PIN_SDA = 4; // D2=GPIO4 -> SDA
 
@@ -93,6 +93,7 @@ void setup() {
   leds[1] = CRGB::Yellow;
   FastLED.show();
   server.on("/", handleRoot);
+  server.on("/status", handleStatus);
   server.onNotFound(handleNotFound);
   server.begin();
   leds[1] = CRGB::Green;
@@ -115,7 +116,7 @@ void setup() {
     Serial.print("=== Debug ");
     Serial.print(s);
     Serial.println(switches[s].valid ? " [valid]" : " [not valid]");
-    switches[s].debug();
+    Serial.print(switches[s].debug());
   }
 
   leds[0] = CRGB::Black;
@@ -130,80 +131,39 @@ void setup() {
 }
 
 void loop() {
-  server.handleClient();
   watchAccelerometers();
+  server.handleClient();
 }
 
 void watchAccelerometers() {
-  bool reported =false;
   unsigned long t = millis();
-  if (t - last_report > 1000) {
-    reported = true;
-    Serial.print(t);
-  }
-  
-  for (uint8_t s = 0; s < MPU_COUNT; s++) {
-    if (!switches[s].valid) continue;
-    uint8_t change = switches[s].measure(t);
-    if (reported) {
-      Serial.print(", <");
-      Serial.print(switches[s].x);
-      Serial.print(", ");
-      Serial.print(switches[s].y);
-      Serial.print(", ");
-      Serial.print(switches[s].z);
-      Serial.print(">");
-      reported = true;
-    }
+  for (uint8_t m = 0; m < MPU_COUNT; m++) {
+    if (!switches[m].valid) continue;
+    uint8_t change = switches[m].measure(t);
     if (change == MEASURE_BECAME_ACTIVE) {
-      digitalWrite(PIN_LED, LED_ON);
-      leds[4 + 9 * s] = CRGB::Yellow;
-      FastLED.show();
-      Serial.print(s);
-      Serial.print(" active at ");
-      Serial.print(t);
-      Serial.print(" with ");
-      Serial.println(switches[s].z);
+      onMPUActive(m, t);
     } else if (change == MEASURE_BECAME_INACTIVE) {
-      digitalWrite(PIN_LED, LED_OFF);
-      leds[4 + 9 * s] = CRGB::Black;
-      FastLED.show();
-      Serial.print(s);
-      Serial.print(" inactive at ");
-      Serial.println(t);
-    }
-  }
-  if (reported) {
-    Serial.println();
-    while (t - last_report > 1000) {
-      last_report += 1000;
+      onMPUInactive(m, t);
     }
   }
 }
 
-void handleRoot() {
-  leds[36] = CRGB::Green;
+void onMPUActive(uint8_t m, unsigned long t) {
+  digitalWrite(PIN_LED, LED_ON);
+  leds[4 + 9 * m] = CRGB::Yellow;
   FastLED.show();
-  server.send(200, "text/plain", "Hello from FoamTarget!");
-  leds[36] = CRGB::Black;
-  FastLED.show();
+  Serial.print(m);
+  Serial.print(" active at ");
+  Serial.print(t);
+  Serial.print(" with ");
+  Serial.println(switches[m].z);
 }
 
-void handleNotFound() {
-  leds[36] = CRGB::Red;
+void onMPUInactive(uint8_t m, unsigned long t) {
+  digitalWrite(PIN_LED, LED_OFF);
+  leds[4 + 9 * m] = CRGB::Black;
   FastLED.show();
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += (server.method() == HTTP_GET) ? "GET" : "POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
-  for (uint8_t i = 0; i < server.args(); i++) {
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-  }
-  server.send(404, "text/plain", message);
-  leds[36] = CRGB::Black;
-  FastLED.show();
+  Serial.print(m);
+  Serial.print(" inactive at ");
+  Serial.println(t);
 }
