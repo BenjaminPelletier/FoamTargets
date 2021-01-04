@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-//#define FASTLED_ESP8266_RAW_PIN_ORDER
+#define FASTLED_ESP8266_RAW_PIN_ORDER
 #include <FastLED.h>
 
 #ifdef ESP32
@@ -34,11 +34,11 @@
 
 #ifdef ESP8266
   // https://randomnerdtutorials.com/esp8266-pinout-reference-gpios/
-  const int PIN_MPU_A0[] = {16, 14, 12}; // D0=GPIO16, D5=GPIO14, D6=GPIO12, D7=GPIO13, D8=GPIO15
+  const int PIN_MPU_A0[] = {16, 0, 12}; // D0=GPIO16, D3=GPIO0, D6=GPIO12, D7=GPIO13, D8=GPIO15
   const int PIN_LED = 2; // D4=GPIO2
-  const uint8_t PIN_RGB_DATA = 0; // D3=GPIO0
-  const uint8_t PIN_SCL = 5; // D1 (GPIO5) -> SCL
-  const uint8_t PIN_SDA = 4; // D2 (GPIO4) -> SDA
+  const uint8_t PIN_RGB_DATA = 14; // D5=GPIO14
+  const uint8_t PIN_SCL = 5; // D1=GPIO5 -> SCL
+  const uint8_t PIN_SDA = 4; // D2=GPIO4 -> SDA
 
   const int LED_OFF = HIGH;
   const int LED_ON = LOW;
