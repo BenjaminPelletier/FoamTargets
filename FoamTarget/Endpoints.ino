@@ -1,3 +1,12 @@
+#include "Endpoints.h"
+
+void setupEndpoints() {
+  server.on("/", handleRoot);
+  server.on("/status", handleStatus);
+  server.onNotFound(handleNotFound);
+  server.begin();
+}
+
 void handlingRequest(bool ok) {
   leds[36] = ok ? CRGB::Green : CRGB::Red;
   FastLED.show();
@@ -17,28 +26,28 @@ void handleRoot() {
 void handleStatus() {
   handlingRequest(true);
   String message = "<html><body>\n";
-  message += "<p>Sensors\n<ul>\n";
+  message += "<p>Accelerometer targets\n<ul>\n";
   for (int m = 0; m < MPU_COUNT; m++) {
-    message += "<li>Sensor ";
+    message += "<li>Target ";
     message += m;
     message += " (A0 = pin ";
-    message += switches[m].pinA0;
+    message += mpuTargets[m].pinA0;
     message += ") ";
-    if (switches[m].valid) {
-      message += "valid, current=<";
-      message += switches[m].x;
+    if (mpuTargets[m].valid) {
+      message += "valid\n<ul>\n";
+      message += "<li>Current: &lt;";
+      message += mpuTargets[m].x;
       message += ", ";
-      message += switches[m].y;
+      message += mpuTargets[m].y;
       message += ", ";
-      message += switches[m].z;
-      message += ">, ";
-      message += switches[m].count;
-      message += " activations";
+      message += mpuTargets[m].z;
+      message += "&gt;</li>\n<li>";
+      message += mpuTargets[m].count;
+      message += " activations</li>";
     } else {
-      message += "INVALID";
+      message += "INVALID\n<ul>\n";
     }
-    message += "\n<ul>\n";
-    String debug = switches[m].debug();
+    String debug = mpuTargets[m].debug();
     int i0 = 0;
     while (i0 < debug.length()) {
       int i1 = debug.indexOf('\n', i0 + 1);

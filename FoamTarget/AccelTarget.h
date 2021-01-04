@@ -1,5 +1,5 @@
-#ifndef AccelSwitch_h
-#define AccelSwitch_h
+#ifndef AccelTarget_h
+#define AccelTarget_h
 
 #include <Wire.h>
 
@@ -42,7 +42,7 @@ const uint8_t PWR_MGMT_1 = 0x6B;
 const uint8_t WHO_AM_I = 0x75; // Should return 0x68
 const uint8_t MPU6050_ID = 0x68;
 
-// Accelerometer switch
+// Accelerometer trigger characteristics
 const float BASELINE_UPDATE_WEIGHT = 0.1f;
 const float BASELINE_PRIOR_WEIGHT = 1.0f - BASELINE_UPDATE_WEIGHT;
 const float BASELINE_TOLERANCE = 8000.0f;
@@ -56,7 +56,7 @@ const uint8_t MEASURE_NO_CHANGE = 0;
 const uint8_t MEASURE_BECAME_ACTIVE = 1;
 const uint8_t MEASURE_BECAME_INACTIVE = 2;
 
-class AccelSwitch {
+class AccelTarget {
   private:
     float baseline;
     unsigned long lastDeviation;
@@ -82,7 +82,7 @@ class AccelSwitch {
     String debug();
 };
 
-String AccelSwitch::debugRegister(String register_name, uint8_t register_value) {
+String AccelTarget::debugRegister(String register_name, uint8_t register_value) {
   String response = "0b";
   uint8_t v = register_value;
   for (uint8_t i = 0; i < 8; i++) {
@@ -102,14 +102,14 @@ String AccelSwitch::debugRegister(String register_name, uint8_t register_value) 
   return response;
 }
 
-void AccelSwitch::writeRegister(uint8_t slave_register, uint8_t value) {
+void AccelTarget::writeRegister(uint8_t slave_register, uint8_t value) {
   Wire.beginTransmission(MPU6050_ADDRESS); // Initialize the Tx buffer
   Wire.write(slave_register); // Put slave register address in Tx buffer
   Wire.write(value); // Put data in Tx buffer
   Wire.endTransmission(); // Send the Tx buffer
 }
 
-uint8_t AccelSwitch::readRegister(uint8_t slave_register) {
+uint8_t AccelTarget::readRegister(uint8_t slave_register) {
   const uint8_t ONE_BYTE = 1;
   Wire.beginTransmission(MPU6050_ADDRESS); // Initialize the Tx buffer
   Wire.write(slave_register); // Put slave register address in Tx buffer
@@ -118,13 +118,13 @@ uint8_t AccelSwitch::readRegister(uint8_t slave_register) {
   return Wire.read(); // Return result
 }
 
-void AccelSwitch::configure(int pin_a0) {
+void AccelTarget::configure(int pin_a0) {
   pinA0 = pin_a0;
   pinMode(pinA0, OUTPUT);
   digitalWrite(pinA0, ACCEL_OFF);
 }
 
-void AccelSwitch::init(unsigned long t) {
+void AccelTarget::init(unsigned long t) {
   digitalWrite(pinA0, ACCEL_ON);
 
   // Disable all power management and select internal 8MHz oscillator for clock
@@ -151,7 +151,7 @@ void AccelSwitch::init(unsigned long t) {
   }
 }
 
-String AccelSwitch::debug() {
+String AccelTarget::debug() {
   // Read back registers to verify configuration
   digitalWrite(pinA0, ACCEL_ON);
   String response = debugRegister("WHO_AM_I", readRegister(WHO_AM_I));
@@ -164,7 +164,7 @@ String AccelSwitch::debug() {
   return response;
 }
 
-void AccelSwitch::readAccelerometer() {
+void AccelTarget::readAccelerometer() {
     digitalWrite(pinA0, ACCEL_ON);
     
     const uint8_t BYTES_PER_ACCEL_READING = 6;
@@ -183,7 +183,7 @@ void AccelSwitch::readAccelerometer() {
     digitalWrite(pinA0, ACCEL_OFF);
 }
 
-uint8_t AccelSwitch::measure(unsigned long t) {
+uint8_t AccelTarget::measure(unsigned long t) {
   if (!valid) {
     return MEASURE_NO_CHANGE;
   }
