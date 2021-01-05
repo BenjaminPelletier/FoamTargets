@@ -7,26 +7,46 @@ void setupEndpoints() {
   server.begin();
 }
 
-void handlingRequest(bool ok) {
-  leds[36] = ok ? CRGB::Green : CRGB::Red;
-  FastLED.show();
-}
-
-void handledRequest() {
-  leds[36] = CRGB::Black;
-  FastLED.show();
-}
-
 void handleRoot() {
-  handlingRequest(true);
-  server.send(200, "text/html", "<html><title>FoamTarget</title><body>FoamTarget<br><a href=\"status\">Status</a></body></html>");
-  handledRequest();
+  showHandlingRequest(true);
+  server.send(200, "text/html", "<html><title>FoamTarget</title><body><h1>FoamTarget</h1>\n<p><a href=\"status\">Status</a></p></body></html>");
+  showHandledRequest();
 }
 
 void handleStatus() {
-  handlingRequest(true);
+  showHandlingRequest(true);
   String message = "<html><body>\n";
-  message += "<p>Accelerometer targets\n<ul>\n";
+  
+  message += "<p>\n<h2>";
+  message += gameMaster ? "Game master" : "Game slave";
+  message += "</h2></p>\n";
+
+  if (gameMaster) {
+    message += "<p>\n<h2>Clients</h2>\n<ul>\n";
+    for (uint8_t c = 0; c < MAX_CLIENTS; c++) {
+      message += "<li>Client ";
+      message += c;
+      if (!clients[c].ok && !clients[c].previouslyRegistered) {
+        message += " (slot available)</li>\n";
+      } else {
+        message += clients[c].ok ? " (active)" : " (disconnected)";
+        message += "\n<ul><li>IP: ";
+        message += clients[c].ip.toString();
+        message += "</li>\n<li>MAC: ";
+        message += clients[c].macString();
+        message += "</li>\n</ul>\n";
+      }
+    }
+    message += "</p>\n";
+  }
+  
+  message += "<p>\n<h2>Accelerometer targets</h2>\n";
+  message += "Last check period: ";
+  message += (tMinus1 - tMinus2);
+  message += " ms<br>\n";
+  message += "Longest check period: ";
+  message += tMaxDelta;
+  message += " ms<br>\n<ul>\n";
   for (int m = 0; m < MPU_COUNT; m++) {
     message += "<li>Target ";
     message += m;
@@ -63,13 +83,14 @@ void handleStatus() {
     message += "</li>\n";
   }
   message += "</ul></p>\n";
+  
   message += "</body></html>";
   server.send(200, "text/html", message);
-  handledRequest();
+  showHandledRequest();
 }
 
 void handleNotFound() {
-  handlingRequest(false);
+  showHandlingRequest(false);
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += server.uri();
@@ -82,5 +103,5 @@ void handleNotFound() {
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
   server.send(404, "text/plain", message);
-  handledRequest();
+  showHandledRequest();
 }

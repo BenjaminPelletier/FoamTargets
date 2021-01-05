@@ -8,12 +8,8 @@
 #include "AccelerometerTargets.h"
 #include "Endpoints.h"
 #include "LEDs.h"
-
-// Server
-const char *ssid = "FoamTargets";
-const char *password = "foamflinger";
-bool isAP;
-IPAddress myIP;
+#include "Network.h"
+#include "Comms.h"
 
 void setup() {
   delay(1000);
@@ -25,22 +21,26 @@ void setup() {
   Serial.println("=====================================");
   Serial.println("Initializing...");
 
-  FastLED.addLeds<WS2812, PIN_RGB_DATA, RGB>(leds, NUM_LEDS);
+  setupLEDs();
 
   // Attempt to connect to existing AP
   showBootStatus(0, CRGB::Yellow);
   // TODO
   
-  // This unit will act as the AP
+  // This unit will act as the game master
   showBootStatus(0, CRGB::Cyan);
-  WiFi.softAP(ssid, password);
-  myIP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(myIP);
+  Serial.println("Setting up access point...");
+  setupAP();
+  gameMaster = true;
   showBootStatus(0, CRGB::Blue);
+
+  // Set up communications
+  Serial.println("Setting up communications...");
+  setupComms();
 
   // Set up endpoints
   showBootStatus(1, CRGB::Yellow);
+  Serial.println("Setting up endpoints...");
   setupEndpoints();
   showBootStatus(1, CRGB::Green);
 
@@ -56,6 +56,7 @@ void setup() {
 void loop() {
   watchAccelerometers();
   server.handleClient();
+  pollUDP();
 }
 
 void onMPUActive(uint8_t m, unsigned long t) {

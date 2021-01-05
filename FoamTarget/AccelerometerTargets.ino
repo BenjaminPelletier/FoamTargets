@@ -23,6 +23,11 @@ void setupAccelerometerTargets() {
 
 void watchAccelerometers() {
   unsigned long t = millis();
+  tMinus2 = tMinus1;
+  tMinus1 = t;
+  if (t - tMinus2 > tMaxDelta) {
+    tMaxDelta = t - tMinus2;
+  }
   for (uint8_t m = 0; m < MPU_COUNT; m++) {
     if (!mpuTargets[m].valid) continue;
     uint8_t change = mpuTargets[m].measure(t);
