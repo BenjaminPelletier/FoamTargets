@@ -65,6 +65,7 @@ void loop() {
   watchAccelerometers();
   server.handleClient();
   pollUDP();
+  animateTargets(millis());
 }
 
 void onMPUActive(uint8_t m, unsigned long t) {

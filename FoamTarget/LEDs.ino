@@ -6,7 +6,7 @@
 void setupLEDs() {
   FastLED.addLeds<WS2812, PIN_RGB_DATA, RGB>(leds, NUM_LEDS);
   for (uint8_t i = 0; i < NUM_TARGETS; i++) {
-    targetDisplays[i].styleIdle = TargetStyles::red;
+    targetDisplays[i].styleIdle = TargetStyles::redSelected;
     targetDisplays[i].styleHit = TargetStyles::blueHit;
     targetDisplays[i].styleNextHit = targetDisplays[i].styleHit;
     drawTarget(i, false, 0);
@@ -33,79 +33,135 @@ void showHandledRequest() {
   digitalWrite(PIN_LED, LED_OFF);
 }
 
+void animateTargets(unsigned long t) {
+  for (uint8_t m = 0; m < MPU_COUNT; m++) {
+    drawTarget(m, mpuTargets[m].active, t);
+  }
+}
+
 void drawTarget(uint8_t target, bool hit, unsigned long t) {
   TargetStyles::Style style = hit ? targetDisplays[target].styleHit : targetDisplays[target].styleIdle;
   const int* sides = targetSides[target];
+  bool draw;
   if (target == 0 || target == 1 || target == 3) {
-    bigHandlers[style](sides, &targetDisplays[target].animationFrame, &targetDisplays[target].tLastFrame, t);
+    draw = bigHandlers[style](sides, &(targetDisplays[target].animationFrame), &(targetDisplays[target].tLastFrame), t);
   } else {
-    smallHandlers[style](sides, &targetDisplays[target].animationFrame, &targetDisplays[target].tLastFrame, t);
+    draw = smallHandlers[style](sides, &(targetDisplays[target].animationFrame), &(targetDisplays[target].tLastFrame), t);
   }
-  FastLED.show();
-}
-
-void bigdrawBlank(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
-  for (uint8_t i = 0; i < BIG_SIDE_LENGTH; i++) {
-    leds[s[0] + i] = CRGB::Black;
+  if (draw) {
+    FastLED.show();
   }
 }
 
-void smalldrawBlank(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
-  for (uint8_t i = 0; i < BIG_SIDE_LENGTH; i++) {
-    leds[s[0] + i] = CRGB::Black;
-  }  
+bool animAlternate(uint16_t interval, DrawTargetHandler draw1, DrawTargetHandler draw2, const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  const uint16_t STEPS = 2;
+  if (*t0 == 0 || t > *t0) {
+    if (*t0 == 0) {
+      *t0 = (t + interval) - (t % (STEPS * interval));
+    } else {
+      *t0 += interval;
+    }
+    if (*f == 0) {
+      draw1(s, f, t0, t);
+      *f = 1;
+    } else {
+      draw2(s, f, t0, t);
+      *f = 0;
+    }
+    return true;
+  }
+  return false;
 }
 
-void bigdrawBlankHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
-  bigdrawBlank(s, f, t0, t);
+bool bDrawBlank(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  for (uint8_t i = 0; i < BIG_SIDE_LENGTH; i++) {
+    leds[s[0] + i] = CRGB::Black;
+  }
+  return true;
+}
+
+bool sDrawBlank(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  for (uint8_t i = 0; i < BIG_SIDE_LENGTH; i++) {
+    leds[s[0] + i] = CRGB::Black;
+  }
+  return true;
+}
+
+bool bDrawBlankHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  bDrawBlank(s, f, t0, t);
   leds[s[0] + 4] = CRGB::White;
+  return true;
 }
 
-void smalldrawBlankHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
-  smalldrawBlank(s, f, t0, t);
+bool sDrawBlankHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  sDrawBlank(s, f, t0, t);
   leds[s[0] + 1] = CRGB::White;
+  return true;
 }
 
-void bigdrawRed(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
-  bigdrawBlank(s, f, t0, t);
+bool bDrawRed(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  bDrawBlank(s, f, t0, t);
   leds[s[0] + 1] = CRGB::Green;
   leds[s[0] + 7] = CRGB::Green;
+  return true;
 }
 
-void smalldrawRed(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
-  smalldrawBlank(s, f, t0, t);
+bool bDrawRed2(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  bDrawBlank(s, f, t0, t);
+  leds[s[0] + 2] = CRGB::Green;
+  leds[s[0] + 6] = CRGB::Green;
+  return true;
+}
+
+bool sDrawRed(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  sDrawBlank(s, f, t0, t);
   leds[s[0] + 1] = CRGB::Green;
+  return true;
 }
 
-void bigdrawRedHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
-  bigdrawRed(s, f, t0, t);
+bool bDrawRedHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  bDrawRed(s, f, t0, t);
   leds[s[0] + 4] = CRGB::White;
+  return true;
 }
 
-void smalldrawRedHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
-  smalldrawRed(s, f, t0, t);
+bool sDrawRedHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  sDrawRed(s, f, t0, t);
   leds[s[0] + 0] = CRGB::White;
   leds[s[0] + 2] = CRGB::White;
+  return true;
 }
 
-void bigdrawBlue(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
-  bigdrawBlank(s, f, t0, t);
+bool bDrawBlue(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  bDrawBlank(s, f, t0, t);
   leds[s[0] + 1] = CRGB::Blue;
   leds[s[0] + 7] = CRGB::Blue;
+  return true;
 }
 
-void smalldrawBlue(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
-  smalldrawBlank(s, f, t0, t);
+bool sDrawBlue(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  sDrawBlank(s, f, t0, t);
   leds[s[0] + 1] = CRGB::Blue;
+  return true;
 }
 
-void bigdrawBlueHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
-  bigdrawBlue(s, f, t0, t);
+bool bDrawBlueHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  bDrawBlue(s, f, t0, t);
   leds[s[0] + 4] = CRGB::White;
+  return true;
 }
 
-void smalldrawBlueHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
-  smalldrawBlue(s, f, t0, t);
+bool sDrawBlueHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  sDrawBlue(s, f, t0, t);
   leds[s[0] + 0] = CRGB::White;
   leds[s[0] + 2] = CRGB::White;
+  return true;
+}
+
+bool bDrawRedSelected(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  return animAlternate(500, bDrawRed, bDrawRed2, s, f, t0, t);
+}
+
+bool sDrawRedSelected(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
+  return sDrawRed(s, f, t0, t); // TODO
 }

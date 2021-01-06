@@ -61,7 +61,6 @@ class AccelTarget {
     float baseline;
     unsigned long lastDeviation;
     unsigned long lastNominal;
-    bool active;
 
     String debugRegister(String register_name, uint8_t register_value);
     void writeRegister(uint8_t slave_register, uint8_t value);
@@ -74,6 +73,7 @@ class AccelTarget {
     int16_t x;
     int16_t y;
     int16_t z;
+    bool active;
     int count;
 
     void configure(int pin_a0);

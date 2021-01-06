@@ -9,39 +9,38 @@ struct TargetStyles {
     redHit,
     blue,
     blueHit,
+    redSelected
   } Style;
 };
 
-typedef void(*DrawTargetHandler)(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
+typedef bool(*DrawTargetHandler)(const int* sides, uint16_t* animationFrame, unsigned long* tLastFrame, unsigned long tNow);
+#define declDraw(handlerName) bool handlerName(const int* s, uint16_t* f, unsigned long* t0, unsigned long t)
 
-void bigdrawBlank(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
-void smalldrawBlank(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
-void bigdrawBlankHit(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
-void smalldrawBlankHit(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
-void bigdrawRed(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
-void smalldrawRed(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
-void bigdrawRedHit(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
-void smalldrawRedHit(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
-void bigdrawBlue(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
-void smalldrawBlue(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
-void bigdrawBlueHit(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
-void smalldrawBlueHit(const int* sides, uint16_t* f, unsigned long* t0, unsigned long t);
+declDraw(bDrawBlank); declDraw(sDrawBlank);
+declDraw(bDrawBlankHit); declDraw(sDrawBlankHit);
+declDraw(bDrawRed); declDraw(sDrawRed);
+declDraw(bDrawRedHit); declDraw(sDrawRedHit);
+declDraw(bDrawBlue); declDraw(sDrawBlue);
+declDraw(bDrawBlueHit); declDraw(sDrawBlueHit);
+declDraw(bDrawRedSelected); declDraw(sDrawRedSelected);
 
 const DrawTargetHandler bigHandlers[] = {
-  bigdrawBlank,
-  bigdrawBlankHit,
-  bigdrawRed,
-  bigdrawRedHit,
-  bigdrawBlue,
-  bigdrawBlueHit,
+  bDrawBlank,
+  bDrawBlankHit,
+  bDrawRed,
+  bDrawRedHit,
+  bDrawBlue,
+  bDrawBlueHit,
+  bDrawRedSelected
 };
 const DrawTargetHandler smallHandlers[] = {
-  smalldrawBlank,
-  smalldrawBlankHit,
-  smalldrawRed,
-  smalldrawRedHit,
-  smalldrawBlue,
-  smalldrawBlueHit
+  sDrawBlank,
+  sDrawBlankHit,
+  sDrawRed,
+  sDrawRedHit,
+  sDrawBlue,
+  sDrawBlueHit,
+  sDrawRedSelected
 };
 
 class TargetDisplay {
