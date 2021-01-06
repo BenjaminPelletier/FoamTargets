@@ -68,19 +68,13 @@ void loop() {
 }
 
 void onMPUActive(uint8_t m, unsigned long t) {
-  digitalWrite(PIN_LED, LED_ON);
-  showTargetActive(m);
-  Serial.print(m);
-  Serial.print(" active at ");
-  Serial.print(t);
-  Serial.print(" with ");
-  Serial.println(mpuTargets[m].z);
+  targetDisplays[m].resetAnimation();
+  drawTarget(m, true, millis());
+  // TODO: call game hit handler
 }
 
 void onMPUInactive(uint8_t m, unsigned long t) {
-  digitalWrite(PIN_LED, LED_OFF);
-  showTargetInactive(m);
-  Serial.print(m);
-  Serial.print(" inactive at ");
-  Serial.println(t);
+  targetDisplays[m].resetAnimation();
+  drawTarget(m, false, millis());
+  targetDisplays[m].styleHit = targetDisplays[m].styleNextHit;
 }

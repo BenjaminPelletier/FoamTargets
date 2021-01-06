@@ -1,7 +1,7 @@
 #ifndef Hardware_h
 #define Hardware_h
 
-const int NUM_LEDS = 40;
+const int NUM_LEDS = 200;
 
 #ifdef ESP32
   const int PIN_MPU_A0[] = {25, 26, 33};
