@@ -3,11 +3,20 @@
 
 bool gameMaster;
 
-WiFiUDP Udp;
-const unsigned int udpPort = 4210;
+WiFiUDP udp;
 char incomingPacket[256];
 
+const unsigned int masterPort = 4210;
+
+const unsigned int slavePort = 4211;
+IPAddress masterIP;
+uint8_t slaveID;
+
+IPAddress broadcastIP(255, 255, 255, 255);
 const int MAC_ADDRESS_LENGTH = 6;
+
+const char MSG_SLAVE_ONLINE = 'S';
+const char MSG_SLAVE_ACCEPTED = 'A';
 
 class FoamTargetClient {
   public:
@@ -18,6 +27,7 @@ class FoamTargetClient {
 
     bool matchesMAC(char* mac);
     void setMAC(char* otherMAC);
+    void copyMAC(char* destination); // TODO: remove
     String macString();
     void sendAccept(uint8_t id);
 };
@@ -40,6 +50,12 @@ void FoamTargetClient::setMAC(char* otherMAC) {
   }
 }
 
+void FoamTargetClient::copyMAC(char* destination) {
+  for (uint8_t i = 0; i < MAC_ADDRESS_LENGTH; i++) {
+    destination[i] = mac[i];
+  }
+}
+
 String FoamTargetClient::macString() {
   String response = "";
   for (uint8_t i = 0; i < MAC_ADDRESS_LENGTH; i++) {
@@ -55,7 +71,11 @@ String FoamTargetClient::macString() {
 }
 
 void FoamTargetClient::sendAccept(uint8_t id) {
-  
+  incomingPacket[0] = MSG_SLAVE_ACCEPTED;
+  incomingPacket[1] = id;
+  udp.beginPacket(clients[id].ip, slavePort);
+  udp.write(incomingPacket, 2);
+  udp.endPacket();
 }
 
 #endif

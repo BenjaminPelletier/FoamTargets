@@ -13,6 +13,7 @@
 
 const char *ssid = "FoamTargets";
 const char *password = "foamflinger";
+const unsigned long CONNECTION_ATTEMPT_DURATION_MS = 3000;
 bool isAP;
 IPAddress myIP;
 

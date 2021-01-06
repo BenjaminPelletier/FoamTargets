@@ -34,10 +34,17 @@ void handleStatus() {
         message += clients[c].ip.toString();
         message += "</li>\n<li>MAC: ";
         message += clients[c].macString();
-        message += "</li>\n</ul>\n";
+        message += "</li>\n</ul>\n</li>\n";
       }
     }
-    message += "</p>\n";
+    message += "</ul></p>\n";
+  } else {
+    message += "<p>\n<h2>Master connection</h2>\n<ul>\n";
+    message += "<li>Master IP: ";
+    message += masterIP.toString();
+    message += "</li>\n<li>Slave ID: ";
+    message += slaveID;
+    message += "</li>\n</ul>\n</p>\n";
   }
   
   message += "<p>\n<h2>Accelerometer targets</h2>\n";

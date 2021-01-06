@@ -1,15 +1,53 @@
 #include "Comms.h"
 
 void setupComms() {
-  Udp.begin(udpPort);
+  if (gameMaster) {
+    setupGameMaster();
+  } else {
+    setupGameSlave();
+  }
+}
+
+void setupGameMaster() {
+  udp.begin(masterPort);
+}
+
+void setupGameSlave() {
+  udp.begin(slavePort);
+
+  incomingPacket[0] = MSG_SLAVE_ONLINE;
+  WiFi.macAddress((uint8_t*)incomingPacket + 1);
+  udp.beginPacket(broadcastIP, masterPort);
+  udp.write(incomingPacket, 1 + MAC_ADDRESS_LENGTH);
+  udp.endPacket();
+  Serial.println("Announced presence; awaiting acknowledgement from master...");
+
+  while (true) {
+    int packetSize = udp.parsePacket();
+    if (packetSize > 0)
+    {
+      Serial.printf("Received %d bytes from %s, port %d\n", packetSize, udp.remoteIP().toString().c_str(), udp.remotePort());
+      int len = udp.read(incomingPacket, 255);
+      incomingPacket[len] = '\0';
+      Serial.printf("UDP packet contents: %s\n", incomingPacket);
+  
+      if (incomingPacket[0] == MSG_SLAVE_ACCEPTED) {
+        masterIP = udp.remoteIP();
+        slaveID = incomingPacket[1];
+        break;
+      } else {
+        Serial.println("Packet was not a response from the game master");
+      }
+    }
+  }
 }
 
 void pollUDP() {
-  int packetSize = Udp.parsePacket();
+  int packetSize = udp.parsePacket();
   if (packetSize > 0)
   {
-    Serial.printf("Received %d bytes from %s, port %d\n", packetSize, Udp.remoteIP().toString().c_str(), Udp.remotePort());
-    int len = Udp.read(incomingPacket, 255);
+    Serial.printf("Received %d bytes from %s, port %d\n", packetSize, udp.remoteIP().toString().c_str(), udp.remotePort());
+    int len = udp.read(incomingPacket, 255);
     incomingPacket[len] = '\0';
     Serial.printf("UDP packet contents: %s\n", incomingPacket);
 
@@ -27,8 +65,8 @@ void interpretPacketAsGameMaster(char* packet, int len) {
   }
   
   char packetType = incomingPacket[0];
-  if (packetType == 'S') {
-    acceptOnlinePacket(Udp.remoteIP(), incomingPacket + 1, len - 1);
+  if (packetType == MSG_SLAVE_ONLINE) {
+    acceptOnlinePacket(udp.remoteIP(), incomingPacket + 1, len - 1);
   } else {
     Serial.println("Unrecognized packet type\n");
   }

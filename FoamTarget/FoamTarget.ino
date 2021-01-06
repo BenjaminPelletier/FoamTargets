@@ -25,31 +25,39 @@ void setup() {
 
   // Attempt to connect to existing AP
   showBootStatus(0, CRGB::Yellow);
-  // TODO
-  
-  // This unit will act as the game master
-  showBootStatus(0, CRGB::Cyan);
-  Serial.println("Setting up access point...");
-  setupAP();
-  gameMaster = true;
-  showBootStatus(0, CRGB::Blue);
+  Serial.print("Attempting to connect to existing access point...");
+  gameMaster = !connectToAP();
+
+  if (gameMaster) {
+    // This unit will be the access point
+    showBootStatus(0, CRGB::Cyan);
+    Serial.println("Setting up new access point...");
+    setupAP();
+    showBootStatus(0, CRGB::Blue);
+  } else {
+    showBootStatus(0, CRGB::Green);
+  }
 
   // Set up communications
+  showBootStatus(1, CRGB::Yellow);
   Serial.println("Setting up communications...");
   setupComms();
-
-  // Set up endpoints
-  showBootStatus(1, CRGB::Yellow);
-  Serial.println("Setting up endpoints...");
-  setupEndpoints();
   showBootStatus(1, CRGB::Green);
 
+  // Set up endpoints
+  showBootStatus(2, CRGB::Yellow);
+  Serial.println("Setting up endpoints...");
+  setupEndpoints();
+  showBootStatus(2, CRGB::Green);
+
+  showBootStatus(3, CRGB::Yellow);
   Serial.println("Setting up accelerometer targets...");
   setupAccelerometerTargets();
+  showBootStatus(3, CRGB::Green);
 
   // Finish setup
-  clearBootStatus();
-  Serial.println("Initiating loop.");
+  clearBootStatus(4);
+  Serial.println("Setup complete.");
   digitalWrite(PIN_LED, LED_OFF);
 }
 

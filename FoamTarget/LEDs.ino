@@ -11,9 +11,10 @@ void showBootStatus(uint8_t bootStep, CRGB color) {
   FastLED.show();
 }
 
-void clearBootStatus() {
-  leds[0] = CRGB::Black;
-  leds[1] = CRGB::Black;
+void clearBootStatus(uint8_t nSteps) {
+  for (uint8_t i = 0; i < nSteps; i++) {
+    leds[i] = CRGB::Black;
+  }
   FastLED.show();
 }
 
