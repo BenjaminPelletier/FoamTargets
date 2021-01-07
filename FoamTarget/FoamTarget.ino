@@ -10,6 +10,9 @@
 #include "LEDs.h"
 #include "Network.h"
 #include "Comms.h"
+#include "Game.h"
+
+Game games[] = { SimpleGame() };
 
 void setup() {
   delay(1000);
