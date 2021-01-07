@@ -9,7 +9,7 @@
   const uint8_t PIN_RGB_DATA = 14; // D5=GPIO14, D7=GPIO13
 #endif
 
-const int NUM_LEDS = 40;
+const int NUM_LEDS = 4;
 CRGB leds[NUM_LEDS];
 
 void setup() {
@@ -33,7 +33,7 @@ void loop() {
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CRGB::Green;
     FastLED.show();
-    delay(10);
+    delay(100);
     leds[i] = CRGB::Black;
   }
 }

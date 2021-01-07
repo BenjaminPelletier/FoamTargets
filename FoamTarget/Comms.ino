@@ -18,7 +18,7 @@ void setupGameSlave() {
   incomingPacket[0] = MSG_SLAVE_ONLINE;
   WiFi.macAddress((uint8_t*)incomingPacket + 1);
   udp.beginPacket(broadcastIP, masterPort);
-  udp.write(incomingPacket, 1 + MAC_ADDRESS_LENGTH);
+  udpWrite(incomingPacket, 1 + MAC_ADDRESS_LENGTH);
   udp.endPacket();
   Serial.println("Announced presence; awaiting acknowledgement from master...");
 

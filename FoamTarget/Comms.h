@@ -1,6 +1,13 @@
 #ifndef Comms_h
 #define Comms_h
 
+#ifdef ESP32
+  #define udpWrite(packet, len) (udp.write((uint8_t*)(packet), (len)));
+#endif
+#ifdef ESP8266
+  #define udpWrite(packet, len) (udp.write((packet), (len)));
+#endif
+
 bool gameMaster;
 
 WiFiUDP udp;
@@ -74,7 +81,7 @@ void FoamTargetClient::sendAccept(uint8_t id) {
   incomingPacket[0] = MSG_SLAVE_ACCEPTED;
   incomingPacket[1] = id;
   udp.beginPacket(clients[id].ip, slavePort);
-  udp.write(incomingPacket, 2);
+  udpWrite(incomingPacket, 2);
   udp.endPacket();
 }
 

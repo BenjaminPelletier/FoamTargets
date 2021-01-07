@@ -62,13 +62,14 @@ void TargetDisplay::resetAnimation() {
 const uint8_t NUM_TARGETS = 5;
 TargetDisplay targetDisplays[NUM_TARGETS];
 
+const uint8_t NUM_SMALL_TARGET_SIDES = 4;
 const uint8_t NUM_TARGET_SIDES = 4;
 const int targetSides[][NUM_TARGET_SIDES] = {
-  { 0, 0, 0, 0 },
-  { 9, 9, 9, 9 },
-  { 18, 0, 0, 0 },
-  { 26, 26, 26, 26 },
-  { 36, 0, 0, 0 },
+  { 2, 3, 0, 1 },
+  { 4, 4, 0, 0 },
+  { 4, 4, 4, 4 },
+  { 4, 4, 0, 0 },
+  { 4, 4, 0, 0 },
 };
 
 const uint8_t BIG_SIDE_LENGTH = 8;
