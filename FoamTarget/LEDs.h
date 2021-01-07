@@ -59,21 +59,24 @@ void TargetDisplay::resetAnimation() {
   tLastFrame = 0;
 }
 
+const int NUM_LEDS = 54;
+
 const uint8_t NUM_TARGETS = 5;
 TargetDisplay targetDisplays[NUM_TARGETS];
 
 const uint8_t NUM_SMALL_TARGET_SIDES = 4;
-const uint8_t NUM_TARGET_SIDES = 4;
-const int targetSides[][NUM_TARGET_SIDES] = {
+const int targetSides[][NUM_SMALL_TARGET_SIDES] = {
   { 2, 3, 0, 1 },
-  { 4, 4, 0, 0 },
-  { 4, 4, 4, 4 },
-  { 4, 4, 0, 0 },
-  { 4, 4, 0, 0 },
+  { 17, 4, 0, 0 },
+  { 25, 22, 23, 24 },
+  { 49, 26, 0, 0 },
+  { 44, 31, 0, 0 },
 };
 
-const uint8_t BIG_SIDE_LENGTH = 8;
-const uint8_t SMALL_SIDE_LENGTH = 3;
+const uint8_t INDICATOR_SIDE_TOP = 9;
+const uint8_t INDICATOR_SIDE_BOTTOM = 36;
+
+const uint8_t BIG_SIDE_LENGTH = 5;
 
 CRGB leds[NUM_LEDS];
 

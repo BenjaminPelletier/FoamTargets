@@ -6,7 +6,7 @@
 void setupLEDs() {
   FastLED.addLeds<WS2812, PIN_RGB_DATA, RGB>(leds, NUM_LEDS);
   for (uint8_t i = 0; i < NUM_TARGETS; i++) {
-    targetDisplays[i].styleIdle = TargetStyles::red;
+    targetDisplays[i].styleIdle = TargetStyles::redSelected;
     targetDisplays[i].styleHit = TargetStyles::redHit;
     targetDisplays[i].styleNextHit = targetDisplays[i].styleHit;
     drawTarget(i, false, 0);
@@ -76,6 +76,7 @@ bool animAlternate(uint16_t interval, DrawTargetHandler draw1, DrawTargetHandler
 bool bDrawBlank(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
   for (uint8_t i = 0; i < BIG_SIDE_LENGTH; i++) {
     leds[s[0] + i] = CRGB::Black;
+    leds[s[1] + i] = CRGB::Black;
   }
   return true;
 }
@@ -90,7 +91,8 @@ bool sDrawBlank(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
 
 bool bDrawBlankHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
   bDrawBlank(s, f, t0, t);
-  leds[s[0] + 4] = CRGB::White;
+  leds[s[0] + 2] = CRGB::White;
+  leds[s[1] + 2] = CRGB::White;
   return true;
 }
 
@@ -105,14 +107,18 @@ bool sDrawBlankHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t
 bool bDrawRed(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
   bDrawBlank(s, f, t0, t);
   leds[s[0] + 1] = CRGB::Green;
-  leds[s[0] + 7] = CRGB::Green;
+  leds[s[0] + 3] = CRGB::Green;
+  leds[s[1] + 1] = CRGB::Green;
+  leds[s[1] + 3] = CRGB::Green;
   return true;
 }
 
 bool bDrawRed2(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
   bDrawBlank(s, f, t0, t);
-  leds[s[0] + 2] = CRGB::Green;
-  leds[s[0] + 6] = CRGB::Green;
+  leds[s[0] + 0] = CRGB::Green;
+  leds[s[0] + 4] = CRGB::Green;
+  leds[s[1] + 0] = CRGB::Green;
+  leds[s[1] + 4] = CRGB::Green;
   return true;
 }
 
@@ -134,7 +140,8 @@ bool sDrawRed2(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
 
 bool bDrawRedHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
   bDrawRed(s, f, t0, t);
-  leds[s[0] + 4] = CRGB::White;
+  leds[s[0] + 2] = CRGB::White;
+  leds[s[1] + 2] = CRGB::White;
   return true;
 }
 
@@ -149,7 +156,9 @@ bool sDrawRedHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) 
 bool bDrawBlue(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
   bDrawBlank(s, f, t0, t);
   leds[s[0] + 1] = CRGB::Blue;
-  leds[s[0] + 7] = CRGB::Blue;
+  leds[s[0] + 3] = CRGB::Blue;
+  leds[s[1] + 1] = CRGB::Blue;
+  leds[s[1] + 3] = CRGB::Blue;
   return true;
 }
 
@@ -163,7 +172,8 @@ bool sDrawBlue(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
 
 bool bDrawBlueHit(const int* s, uint16_t* f, unsigned long* t0, unsigned long t) {
   bDrawBlue(s, f, t0, t);
-  leds[s[0] + 4] = CRGB::White;
+  leds[s[0] + 2] = CRGB::White;
+  leds[s[1] + 2] = CRGB::White;
   return true;
 }
 

@@ -9,8 +9,11 @@
   const uint8_t PIN_RGB_DATA = 14; // D5=GPIO14, D7=GPIO13
 #endif
 
-const int NUM_LEDS = 4;
+const int NUM_LEDS = 26;
 CRGB leds[NUM_LEDS];
+
+const CRGB colors[] = { CRGB::Green, CRGB::Red, CRGB::Blue, CRGB::White };
+const int NUM_COLORS = sizeof(colors) / sizeof(CRGB);
 
 void setup() {
   delay(1000);
@@ -30,10 +33,12 @@ void setup() {
 
 void loop() {
   Serial.println("Starting loop");
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CRGB::Green;
-    FastLED.show();
-    delay(100);
-    leds[i] = CRGB::Black;
+  for (int c = 0; c < NUM_COLORS; c++) {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = colors[c];
+      FastLED.show();
+      delay(100);
+      leds[i] = CRGB::Black;
+    }
   }
 }

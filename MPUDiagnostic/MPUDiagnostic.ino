@@ -1,9 +1,9 @@
 #include <Wire.h>
 
-#ifdef ESP8266
-  const int PIN_MPU_A0[] = {16, 14, 12}; // D0=GPIO16, D5=GPIO14, D6=GPIO12, D7=GPIO13, D8=GPIO15
+#ifdef ESP32
+  const int PIN_MPU_A0[] = {14, 27, 26, 25, 33};
 #else
-  const int PIN_MPU_A0[] = {25, 26, 33};
+  const int PIN_MPU_A0[] = {16, 0, 12, 13, 15}; // D0=GPIO16, D3=GPIO0, D6=GPIO12, D7=GPIO13, D8=GPIO15
 #endif
 const int MPU_COUNT = sizeof(PIN_MPU_A0) / sizeof(int);
 const int ACCEL_OFF = LOW;

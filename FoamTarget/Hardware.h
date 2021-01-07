@@ -1,10 +1,10 @@
 #ifndef Hardware_h
 #define Hardware_h
 
-const int NUM_LEDS = 200;
-
 #ifdef ESP32
-  const int PIN_MPU_A0[] = {25, 26, 33};
+  // https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
+  
+  const int PIN_MPU_A0[] = {14, 27, 26, 25, 33};
   // D22 -> SCL
   // D21 -> SDA
 
@@ -19,7 +19,7 @@ const int NUM_LEDS = 200;
   // NodeMCU 1.0 (ESP-12E Module)
   // https://randomnerdtutorials.com/esp8266-pinout-reference-gpios/
   
-  const int PIN_MPU_A0[] = {16, 0, 12}; // D0=GPIO16, D3=GPIO0, D6=GPIO12, D7=GPIO13, D8=GPIO15
+  const int PIN_MPU_A0[] = {16, 0, 12, 13, 15}; // D0=GPIO16, D3=GPIO0, D6=GPIO12, D7=GPIO13, D8=GPIO15
   const uint8_t PIN_SCL = 5; // D1=GPIO5 -> SCL
   const uint8_t PIN_SDA = 4; // D2=GPIO4 -> SDA
   
