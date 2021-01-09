@@ -12,7 +12,9 @@
 #include "Comms.h"
 #include "Game.h"
 
-Game games[] = { SimpleGame() };
+VictoryGame victoryGame;
+SimpleGame simpleGame;
+Game* currentGame;
 
 void setup() {
   delay(1000);
@@ -53,6 +55,7 @@ void setup() {
   setupEndpoints();
   showBootStatus(2, CRGB::Green);
 
+  // Set up accelerometer targets
   showBootStatus(3, CRGB::Yellow);
   Serial.println("Setting up accelerometer targets...");
   setupAccelerometerTargets();
@@ -62,23 +65,36 @@ void setup() {
   clearBootStatus(4);
   Serial.println("Setup complete.");
   digitalWrite(PIN_LED, LED_OFF);
+
+  // Set up games
+  simpleGame.nextGame = &victoryGame;
+  victoryGame.nextGame = &simpleGame;
+  currentGame = &simpleGame;
+  currentGame->init();
 }
 
 void loop() {
   watchAccelerometers();
   server.handleClient();
   pollUDP();
+  checkGameChange(currentGame->heartbeat());
   animateTargets(millis());
 }
 
 void onMPUActive(uint8_t m, unsigned long t) {
   targetDisplays[m].resetAnimation();
   drawTarget(m, true, millis());
-  // TODO: call game hit handler
+  checkGameChange(currentGame->hit(GameTargetID(0, m)));
 }
 
 void onMPUInactive(uint8_t m, unsigned long t) {
   targetDisplays[m].resetAnimation();
   drawTarget(m, false, millis());
-  targetDisplays[m].styleHit = targetDisplays[m].styleNextHit;
+}
+
+void checkGameChange(Game* newGame) {
+  if (newGame != NO_GAME) {
+    currentGame = newGame;
+    currentGame->init();
+  }
 }

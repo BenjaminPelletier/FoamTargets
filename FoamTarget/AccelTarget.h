@@ -41,11 +41,12 @@ const uint8_t PWR_MGMT_1 = 0x6B;
 
 const uint8_t WHO_AM_I = 0x75; // Should return 0x68
 const uint8_t MPU6050_ID = 0x68;
+const uint8_t MPU6050_INVALID_ID = 0xFF;
 
 // Accelerometer trigger characteristics
 const float BASELINE_UPDATE_WEIGHT = 0.1f;
 const float BASELINE_PRIOR_WEIGHT = 1.0f - BASELINE_UPDATE_WEIGHT;
-const float BASELINE_TOLERANCE = 8000.0f;
+const float BASELINE_TOLERANCE = 6000.0f;
 const int DEBOUNCE_MS = 80;
 const int RECALIBRATION_DELAY_MS = 5000;
 
@@ -59,7 +60,6 @@ const uint8_t MEASURE_BECAME_INACTIVE = 2;
 class AccelTarget {
   private:
     float baseline;
-    unsigned long lastDeviation;
     unsigned long lastNominal;
 
     String debugRegister(String register_name, uint8_t register_value);
@@ -68,13 +68,17 @@ class AccelTarget {
     void readAccelerometer();
 
   public:
+    unsigned long lastDeviation;
+  
     int pinA0;
     bool valid;
     int16_t x;
     int16_t y;
     int16_t z;
     bool active;
+    
     int count;
+    float maxDelta;
 
     void configure(int pin_a0);
     void init(unsigned long t);
@@ -127,28 +131,38 @@ void AccelTarget::configure(int pin_a0) {
 void AccelTarget::init(unsigned long t) {
   digitalWrite(pinA0, ACCEL_ON);
 
-  // Disable all power management and select internal 8MHz oscillator for clock
-  writeRegister(PWR_MGMT_1, 0);
-
-  // Reset all internal signal paths
-  writeRegister(SIGNAL_PATH_RESET, (1 << GYRO_RESET) | (1 << ACCEL_RESET) | (1 << TEMP_RESET));
-
-  // Set full scale range
-  writeRegister(ACCEL_CONFIG, AFS_SEL_16G);
-
-  // Verify that we're talking to a working accelerometer
-  valid = readRegister(WHO_AM_I) == MPU6050_ID;
-
-  if (valid) {
-    // Set initial state values
-    readAccelerometer();
-    digitalWrite(pinA0, ACCEL_OFF);
+  for (uint8_t attempt = 0; attempt < 5; attempt++) {
+    writeRegister(SMPLRT_DIV, 0x00);
   
-    baseline = z;
-    active = false;
-    lastNominal = t;
-    lastDeviation = t;
+    writeRegister(CONFIG, 0x00);
+  
+      // Set full scale range
+    writeRegister(ACCEL_CONFIG, AFS_SEL_16G);
+    
+    // Disable all power management and select internal 8MHz oscillator for clock
+    writeRegister(PWR_MGMT_1, 0);
+  
+    // Reset all internal signal paths
+    writeRegister(SIGNAL_PATH_RESET, (1 << GYRO_RESET) | (1 << ACCEL_RESET) | (1 << TEMP_RESET));
+  
+    // Verify that we're talking to a working accelerometer
+    valid = readRegister(WHO_AM_I) != MPU6050_INVALID_ID;
+  
+    if (valid) {
+      // Set initial state values
+      readAccelerometer();
+    
+      baseline = z;
+      active = false;
+      lastNominal = t;
+      lastDeviation = t;
+      break;
+    }
+
+    delay(100);
   }
+
+  digitalWrite(pinA0, ACCEL_OFF);
 }
 
 String AccelTarget::debug() {
@@ -191,12 +205,14 @@ uint8_t AccelTarget::measure(unsigned long t) {
   readAccelerometer();
   
   uint8_t result = MEASURE_NO_CHANGE;
-  if (abs(z - baseline) > BASELINE_TOLERANCE) {
+  float dz = abs(z - baseline);
+  if (dz > BASELINE_TOLERANCE) {
     if (!active) {
       active = true;
       result = MEASURE_BECAME_ACTIVE;
       count++;
     }
+    if (dz > maxDelta) maxDelta = dz; if (-dz > maxDelta) maxDelta = -dz;
     lastDeviation = t;
   } else if (t > lastDeviation + DEBOUNCE_MS) {
     if (active) {

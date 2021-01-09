@@ -3,6 +3,7 @@
 void setupEndpoints() {
   server.on("/", handleRoot);
   server.on("/status", handleStatus);
+  server.on("/reset_stats", HTTP_POST, handleResetStats);
   server.onNotFound(handleNotFound);
   server.begin();
 }
@@ -48,6 +49,7 @@ void handleStatus() {
   }
   
   message += "<p>\n<h2>Accelerometer targets</h2>\n";
+  message += "<form action=\"/reset_stats\" method=\"post\"><input type=\"submit\" value=\"Reset stats\"></form>\n";
   message += "Last check period: ";
   message += (tMinus1 - tMinus2);
   message += " ms<br>\n";
@@ -68,7 +70,9 @@ void handleStatus() {
       message += mpuTargets[m].y;
       message += ", ";
       message += mpuTargets[m].z;
-      message += "&gt;</li>\n<li>";
+      message += "&gt;</li>\n<li>Max delta: ";
+      message += mpuTargets[m].maxDelta;
+      message += "</li>\n<li>";
       message += mpuTargets[m].count;
       message += " activations</li>";
     } else {
@@ -93,6 +97,19 @@ void handleStatus() {
   
   message += "</body></html>";
   server.send(200, "text/html", message);
+  showHandledRequest();
+}
+
+void handleResetStats() {
+  showHandlingRequest(false);
+  for (int m = 0; m < MPU_COUNT; m++) {
+    if (!mpuTargets[m].valid) continue;
+    mpuTargets[m].maxDelta = 0;
+    mpuTargets[m].count = 0;
+  }
+  tMaxDelta = 0;
+  server.sendHeader("Location", "/status");
+  server.send(303, "text/plain", "Accelerometer stats reset.");
   showHandledRequest();
 }
 

@@ -1,6 +1,8 @@
 #ifndef LEDs_h
 #define LEDs_h
 
+// TODO: https://github.com/FastLED/FastLED/issues/507 https://randomnerdtutorials.com/esp32-dual-core-arduino-ide/
+
 struct TargetStyles {
   typedef enum : uint8_t {
     blank = 0,
@@ -9,7 +11,10 @@ struct TargetStyles {
     redHit,
     blue,
     blueHit,
-    redSelected
+    green,
+    redSelected,
+    blueSelected,
+    rainbow
   } Style;
 };
 
@@ -22,7 +27,10 @@ declDraw(bDrawRed); declDraw(sDrawRed);
 declDraw(bDrawRedHit); declDraw(sDrawRedHit);
 declDraw(bDrawBlue); declDraw(sDrawBlue);
 declDraw(bDrawBlueHit); declDraw(sDrawBlueHit);
+declDraw(bDrawGreen); declDraw(sDrawGreen);
 declDraw(bDrawRedSelected); declDraw(sDrawRedSelected);
+declDraw(bDrawBlueSelected); declDraw(sDrawBlueSelected);
+declDraw(bDrawRainbow); declDraw(sDrawRainbow);
 
 const DrawTargetHandler bigHandlers[] = {
   bDrawBlank,
@@ -31,7 +39,10 @@ const DrawTargetHandler bigHandlers[] = {
   bDrawRedHit,
   bDrawBlue,
   bDrawBlueHit,
-  bDrawRedSelected
+  bDrawGreen,
+  bDrawRedSelected,
+  bDrawBlueSelected,
+  bDrawRainbow,
 };
 const DrawTargetHandler smallHandlers[] = {
   sDrawBlank,
@@ -40,14 +51,16 @@ const DrawTargetHandler smallHandlers[] = {
   sDrawRedHit,
   sDrawBlue,
   sDrawBlueHit,
-  sDrawRedSelected
+  sDrawGreen,
+  sDrawRedSelected,
+  sDrawBlueSelected,
+  sDrawRainbow
 };
 
 class TargetDisplay {
   public:
     TargetStyles::Style styleIdle;
     TargetStyles::Style styleHit;
-    TargetStyles::Style styleNextHit;
     uint16_t animationFrame;
     unsigned long tLastFrame;
 
@@ -59,7 +72,7 @@ void TargetDisplay::resetAnimation() {
   tLastFrame = 0;
 }
 
-const int NUM_LEDS = 54;
+const int NUM_LEDS = 74;
 
 const uint8_t NUM_TARGETS = 5;
 TargetDisplay targetDisplays[NUM_TARGETS];
@@ -73,11 +86,26 @@ const int targetSides[][NUM_SMALL_TARGET_SIDES] = {
   { 44, 31, 0, 0 },
 };
 
-const uint8_t INDICATOR_SIDE_TOP = 9;
-const uint8_t INDICATOR_SIDE_BOTTOM = 36;
+const uint8_t INDICATOR_TOP_INDEX = 9;
+const uint8_t INDICATOR_TOP_LENGTH = 8;
+const uint8_t INDICATOR_BOTTOM_INDEX = 36;
+const uint8_t INDICATOR_BOTTOM_LENGTH = 8;
+const uint8_t INDICATOR_SIDE_INDEX = 54;
+const uint8_t INDICATOR_SIDE_LENGTH = 20;
 
 const uint8_t BIG_SIDE_LENGTH = 5;
 
 CRGB leds[NUM_LEDS];
+
+class CRGB2 {
+  public:
+    enum {
+      VeryDarkRed = 0x200000,
+      VeryDarkBlue = 0x000020
+    } ExtendedColors;
+};
+
+const CRGB SPECTRUM[] = { CRGB::Red, CRGB::Orange, CRGB::Yellow, CRGB::Green, CRGB::Cyan, CRGB::Blue, CRGB::Indigo, CRGB::Violet, CRGB::Magenta };
+const uint8_t SPECTRUM_LENGTH = sizeof(SPECTRUM) / sizeof(CRGB);
 
 #endif

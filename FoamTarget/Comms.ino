@@ -82,8 +82,8 @@ void acceptOnlinePacket(IPAddress ip, char* packet, int len) {
     return;
   }
 
-  int clientID = -1;
-  for (uint8_t c = 0; c < MAX_CLIENTS; c++) {
+  int clientID = 0;
+  for (uint8_t c = 1; c < MAX_CLIENTS; c++) {
     if (clients[c].matchesMAC(packet)) {
       // Client is reconnecting (MAC already known)
       clientID = c;
@@ -91,8 +91,8 @@ void acceptOnlinePacket(IPAddress ip, char* packet, int len) {
     }
   }
 
-  if (clientID < 0) {
-    for (uint8_t c = 0; c < MAX_CLIENTS; c++) {
+  if (clientID < 1) {
+    for (uint8_t c = 1; c < MAX_CLIENTS; c++) {
       if (!clients[c].previouslyRegistered) {
         // New client is using previously-unused client slot
         clientID = c;
@@ -101,8 +101,8 @@ void acceptOnlinePacket(IPAddress ip, char* packet, int len) {
     }
   }
 
-  if (clientID < 0) {
-    for (uint8_t c = 0; c < MAX_CLIENTS; c++) {
+  if (clientID < 1) {
+    for (uint8_t c = 1; c < MAX_CLIENTS; c++) {
       if (!clients[c].ok) {
         // New client is evicting down client
         clientID = c;
@@ -111,7 +111,7 @@ void acceptOnlinePacket(IPAddress ip, char* packet, int len) {
     }
   }
 
-  if (clientID < 0) {
+  if (clientID < 1) {
     Serial.println("Could not onboard client; no available slots");
   }
 

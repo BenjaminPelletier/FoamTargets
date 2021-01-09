@@ -39,7 +39,8 @@ class FoamTargetClient {
     void sendAccept(uint8_t id);
 };
 
-const int MAX_CLIENTS = 5;
+const uint8_t MAX_CLIENTS = 5;
+const uint8_t CLIENT_SELF = 0;
 FoamTargetClient clients[MAX_CLIENTS];
 
 bool FoamTargetClient::matchesMAC(char* otherMAC) {

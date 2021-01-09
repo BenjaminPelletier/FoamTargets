@@ -14,7 +14,7 @@ void setupAccelerometerTargets() {
     mpuTargets[m].init(millis());
   }
   for (uint8_t m = 0; m < MPU_COUNT; m++) {
-    Serial.print("=== Debug ");
+    Serial.print("=== Target ");
     Serial.print(m);
     Serial.println(mpuTargets[m].valid ? " [valid]" : " [not valid]");
     Serial.print(mpuTargets[m].debug());

@@ -9,7 +9,7 @@
   const uint8_t PIN_RGB_DATA = 14; // D5=GPIO14, D7=GPIO13
 #endif
 
-const int NUM_LEDS = 26;
+const int NUM_LEDS = 74;
 CRGB leds[NUM_LEDS];
 
 const CRGB colors[] = { CRGB::Green, CRGB::Red, CRGB::Blue, CRGB::White };
