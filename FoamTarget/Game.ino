@@ -56,6 +56,8 @@ void shuffleIndices(uint8_t maxIndex) {
 void setTarget(GameTargetID id, TargetStyles::Style idle, TargetStyles::Style hit) {
   uint8_t client = id.client();
   uint8_t t = id.target();
+
+  /*
   Serial.print("setTarget(<");
   Serial.print(client);
   Serial.print(", ");
@@ -65,6 +67,8 @@ void setTarget(GameTargetID id, TargetStyles::Style idle, TargetStyles::Style hi
   Serial.print(", ");
   Serial.print(hit);
   Serial.println(")");
+  */
+  
   if (client == 0) {
     targetDisplays[t].styleIdle = idle;
     targetDisplays[t].styleHit = hit;
@@ -97,7 +101,7 @@ TargetStyles::Style getTargetHitStyle(GameTargetID id) {
 void SimpleGame::init() {
   Serial.println("Beginning new Simple game...");
 
-  maxScore = 10;
+  maxScore = 40;
   
   enumerateAvailableTargets();
   Serial.print("Found ");
@@ -164,10 +168,12 @@ Game* SimpleGame::hit(GameTargetID hit) {
   }
 
   // Display new score on side indicator
+  /*
   Serial.print("SimpleGame.hit drawing blue ");
   Serial.print(blueScore);
   Serial.print(" to red ");
   Serial.println(redScore);
+  */
   fDrawScore = 0;
   tDrawScore = millis();
   drawScore(tDrawScore);

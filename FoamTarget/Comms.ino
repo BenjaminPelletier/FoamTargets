@@ -46,10 +46,10 @@ void pollUDP(SlaveHitHandler onHit) {
   int packetSize = udp.parsePacket();
   if (packetSize > 0)
   {
-    Serial.printf("Received %d bytes from %s, port %d\n", packetSize, udp.remoteIP().toString().c_str(), udp.remotePort());
+    //Serial.printf("Received %d bytes from %s, port %d\n", packetSize, udp.remoteIP().toString().c_str(), udp.remotePort());
     int len = udp.read(packetBuffer, 255);
     packetBuffer[len] = '\0';
-    Serial.printf("UDP packet contents: %s\n", packetBuffer);
+    //Serial.printf("UDP packet contents: %s\n", packetBuffer);
 
     if (gameMaster) {
       interpretPacketAsGameMaster(packetBuffer, len, onHit);
@@ -148,9 +148,12 @@ void notifyGameMasterOfHit(uint8_t target) {
   udp.beginPacket(masterIP, masterPort);
   udpWrite(packetBuffer, 2);
   udp.endPacket();
+
+  /*
   Serial.print("Informed master ");
   Serial.print(target);
   Serial.println("hit");
+  */
 }
 
 void changeSlaveTargetStyle(GameTargetID id, TargetStyles::Style idle, TargetStyles::Style hit) {
@@ -164,6 +167,8 @@ void changeSlaveTargetStyle(GameTargetID id, TargetStyles::Style idle, TargetSty
   udp.beginPacket(clients[client].ip, slavePort);
   udpWrite(packetBuffer, 4);
   udp.endPacket();
+
+  /*
   Serial.print("Instructd slave ");
   Serial.print(client);
   Serial.print(" at ");
@@ -173,4 +178,5 @@ void changeSlaveTargetStyle(GameTargetID id, TargetStyles::Style idle, TargetSty
   Serial.print(" to change target ");
   Serial.print(id.target());
   Serial.println(" styles");
+  */
 }
