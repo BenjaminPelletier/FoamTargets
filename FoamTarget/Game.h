@@ -8,12 +8,15 @@ class GameTargetID {
   public:
     GameTargetID() : data(0) {}
     GameTargetID(uint8_t client, uint8_t target) : data((client << 4) | target) {}
+    GameTargetID(char c) : data((uint8_t)c) {}
 
     uint8_t data;
     
     uint8_t client() { return data >> 4; }
     uint8_t target() { return data & 0x0F; }
 };
+
+typedef void(*SlaveHitHandler)(GameTargetID id);
 
 bool operator==(const GameTargetID& lhs, const GameTargetID& rhs)
 {

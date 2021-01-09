@@ -1,4 +1,15 @@
-#include "Network.h"
+#ifdef ESP32
+  #include <WiFi.h>
+  #include <WiFiAP.h>
+#endif
+
+#ifdef ESP8266
+  #include <ESP8266WiFi.h>
+  #include <WiFiUdp.h>
+#endif
+
+const char *ssid = "FoamTargets";
+const char *password = "foamflinger";
 
 String wlStatusToString(wl_status_t status) {
   switch (status) {
@@ -14,27 +25,21 @@ String wlStatusToString(wl_status_t status) {
   }
 }
 
-bool connectToAP() {
+void setup() {
+  Serial.begin(57600);
+  Serial.print("Connecting to ");
+  Serial.print(ssid);
+  Serial.println("...");
+  
   WiFi.begin(ssid, password);
-  unsigned long t1 = millis() + CONNECTION_ATTEMPT_DURATION_MS;
-  while (millis() < t1 && (WiFi.status() == WL_IDLE_STATUS || WiFi.status() == WL_DISCONNECTED || WiFi.status() == WL_NO_SHIELD)) {
+  while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    //Serial.print('.');
     Serial.println(wlStatusToString(WiFi.status()));
   }
-  if (WiFi.status() == WL_CONNECTED) {
-      return true;
-  }
-  Serial.println();
-
-  Serial.print("  ");
-  Serial.println(wlStatusToString(WiFi.status()));
-  return false;
+  
+  Serial.println("Connected.");
 }
 
-void setupAP() {
-  WiFi.softAP(ssid, password);
-  myIP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(myIP);
+void loop() {
+  delay(1000);
 }

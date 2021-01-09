@@ -39,6 +39,9 @@ void handleStatus() {
       }
     }
     message += "</ul></p>\n";
+
+    message += "<p>\n<h2>Game</h2>\n";
+    message += "<form action=\"/restart_game\" method=\"post\"><input type=\"submit\" value=\"Restart game\"></form>\n";
   } else {
     message += "<p>\n<h2>Master connection</h2>\n<ul>\n";
     message += "<li>Master IP: ";

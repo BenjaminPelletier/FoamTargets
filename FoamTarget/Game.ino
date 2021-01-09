@@ -70,7 +70,7 @@ void setTarget(GameTargetID id, TargetStyles::Style idle, TargetStyles::Style hi
     targetDisplays[t].styleHit = hit;
     targetDisplays[t].resetAnimation();
   } else {
-    //TODO
+    changeSlaveTargetStyle(id, idle, hit);
     clientTargets[client][t].styleIdle = idle;
     clientTargets[client][t].styleHit = hit;
   }
@@ -123,9 +123,9 @@ void SimpleGame::init() {
     leds[INDICATOR_TOP_INDEX + i] = CRGB::Black;
   }
 
-  for (uint8_t i = 0; i < INDICATOR_BOTTOM_LENGTH; i++) {
-    leds[INDICATOR_BOTTOM_INDEX + i] = CRGB::Black;
-  }
+  //for (uint8_t i = 0; i < INDICATOR_BOTTOM_LENGTH; i++) {
+  //  leds[INDICATOR_BOTTOM_INDEX + i] = CRGB::Black;
+  //}
 
   for (uint8_t i = 0; i < INDICATOR_SIDE_LENGTH; i++) {
     leds[INDICATOR_SIDE_INDEX + i] = CRGB::Black;
@@ -262,9 +262,9 @@ void VictoryGame::init() {
     leds[INDICATOR_TOP_INDEX + i] = CRGB::Black;
   }
 
-  for (uint8_t i = 0; i < INDICATOR_BOTTOM_LENGTH; i++) {
-    leds[INDICATOR_BOTTOM_INDEX + i] = CRGB::Black;
-  }
+  //for (uint8_t i = 0; i < INDICATOR_BOTTOM_LENGTH; i++) {
+  //  leds[INDICATOR_BOTTOM_INDEX + i] = CRGB::Black;
+  //}
 
   leds[INDICATOR_SIDE_INDEX] = CRGB::White;
   for (uint8_t i = 1; i < INDICATOR_SIDE_LENGTH; i++) {

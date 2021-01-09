@@ -11,7 +11,7 @@
 bool gameMaster;
 
 WiFiUDP udp;
-char incomingPacket[256];
+char packetBuffer[256];
 
 const unsigned int masterPort = 4210;
 
@@ -22,8 +22,10 @@ uint8_t slaveID;
 IPAddress broadcastIP(255, 255, 255, 255);
 const int MAC_ADDRESS_LENGTH = 6;
 
-const char MSG_SLAVE_ONLINE = 'S';
+const char MSG_SLAVE_ONLINE = 'O';
 const char MSG_SLAVE_ACCEPTED = 'A';
+const char MSG_SLAVE_TARGET_HIT = 'H';
+const char MSG_CHANGE_STYLE = 'S';
 
 class FoamTargetClient {
   public:
@@ -79,10 +81,10 @@ String FoamTargetClient::macString() {
 }
 
 void FoamTargetClient::sendAccept(uint8_t id) {
-  incomingPacket[0] = MSG_SLAVE_ACCEPTED;
-  incomingPacket[1] = id;
+  packetBuffer[0] = MSG_SLAVE_ACCEPTED;
+  packetBuffer[1] = id;
   udp.beginPacket(clients[id].ip, slavePort);
-  udpWrite(incomingPacket, 2);
+  udpWrite(packetBuffer, 2);
   udp.endPacket();
 }
 

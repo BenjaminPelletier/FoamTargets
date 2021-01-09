@@ -29,9 +29,18 @@ void setup() {
   setupLEDs();
 
   // Attempt to connect to existing AP
-  showBootStatus(0, CRGB::Yellow);
-  Serial.print("Attempting to connect to existing access point...");
-  gameMaster = !connectToAP();
+  showBootStatus(0, CRGB::Orange);
+  for (int i = 0; i < 3; i++) {
+    Serial.print("Attempt ");
+    Serial.print(i);
+    Serial.print(" to connect to existing access point...");
+    gameMaster = !connectToAP();
+    if (!gameMaster) {
+      Serial.println("  Connected to AP.");
+      break;
+    }
+    delay(1000);
+  }
 
   if (gameMaster) {
     // This unit will be the access point
@@ -44,19 +53,19 @@ void setup() {
   }
 
   // Set up communications
-  showBootStatus(1, CRGB::Yellow);
+  showBootStatus(1, CRGB::Orange);
   Serial.println("Setting up communications...");
   setupComms();
   showBootStatus(1, CRGB::Green);
 
   // Set up endpoints
-  showBootStatus(2, CRGB::Yellow);
+  showBootStatus(2, CRGB::Orange);
   Serial.println("Setting up endpoints...");
   setupEndpoints();
   showBootStatus(2, CRGB::Green);
 
   // Set up accelerometer targets
-  showBootStatus(3, CRGB::Yellow);
+  showBootStatus(3, CRGB::Orange);
   Serial.println("Setting up accelerometer targets...");
   setupAccelerometerTargets();
   showBootStatus(3, CRGB::Green);
@@ -67,29 +76,42 @@ void setup() {
   digitalWrite(PIN_LED, LED_OFF);
 
   // Set up games
-  simpleGame.nextGame = &victoryGame;
-  victoryGame.nextGame = &simpleGame;
-  currentGame = &simpleGame;
-  currentGame->init();
+  if (gameMaster) {
+    simpleGame.nextGame = &victoryGame;
+    victoryGame.nextGame = &simpleGame;
+    victoryGame.idleStyle = TargetStyles::blank;
+    currentGame = &victoryGame;
+    currentGame->init();
+  }
 }
 
 void loop() {
   watchAccelerometers();
   server.handleClient();
-  pollUDP();
-  checkGameChange(currentGame->heartbeat());
+  pollUDP(onSlaveTargetHit);
+  if (gameMaster) {
+    checkGameChange(currentGame->heartbeat());
+  }
   animateTargets(millis());
 }
 
 void onMPUActive(uint8_t m, unsigned long t) {
   targetDisplays[m].resetAnimation();
   drawTarget(m, true, millis());
-  checkGameChange(currentGame->hit(GameTargetID(0, m)));
+  if (gameMaster) {
+    checkGameChange(currentGame->hit(GameTargetID(0, m)));
+  } else {
+    notifyGameMasterOfHit(m);
+  }
 }
 
 void onMPUInactive(uint8_t m, unsigned long t) {
   targetDisplays[m].resetAnimation();
   drawTarget(m, false, millis());
+}
+
+void onSlaveTargetHit(GameTargetID id) {
+  checkGameChange(currentGame->hit(id));
 }
 
 void checkGameChange(Game* newGame) {

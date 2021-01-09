@@ -13,13 +13,14 @@ void setupLEDs() {
 }
 
 void showBootStatus(uint8_t bootStep, CRGB rgb) {
-  leds[bootStep] = rgb;
+  leds[INDICATOR_BOTTOM_INDEX + INDICATOR_BOTTOM_LENGTH - 1 - bootStep] = rgb;
   FastLED.show();
+  delay(100);
 }
 
 void clearBootStatus(uint8_t nSteps) {
   for (uint8_t i = 0; i < nSteps; i++) {
-    leds[i] = CRGB::Black;
+    //leds[INDICATOR_BOTTOM_INDEX + INDICATOR_BOTTOM_LENGTH - 1 - i] = CRGB::Black;
   }
   FastLED.show();
 }

@@ -15,10 +15,10 @@ void setupGameMaster() {
 void setupGameSlave() {
   udp.begin(slavePort);
 
-  incomingPacket[0] = MSG_SLAVE_ONLINE;
-  WiFi.macAddress((uint8_t*)incomingPacket + 1);
+  packetBuffer[0] = MSG_SLAVE_ONLINE;
+  WiFi.macAddress((uint8_t*)packetBuffer + 1);
   udp.beginPacket(broadcastIP, masterPort);
-  udpWrite(incomingPacket, 1 + MAC_ADDRESS_LENGTH);
+  udpWrite(packetBuffer, 1 + MAC_ADDRESS_LENGTH);
   udp.endPacket();
   Serial.println("Announced presence; awaiting acknowledgement from master...");
 
@@ -27,13 +27,13 @@ void setupGameSlave() {
     if (packetSize > 0)
     {
       Serial.printf("Received %d bytes from %s, port %d\n", packetSize, udp.remoteIP().toString().c_str(), udp.remotePort());
-      int len = udp.read(incomingPacket, 255);
-      incomingPacket[len] = '\0';
-      Serial.printf("UDP packet contents: %s\n", incomingPacket);
+      int len = udp.read(packetBuffer, 255);
+      packetBuffer[len] = '\0';
+      Serial.printf("UDP packet contents: %s\n", packetBuffer);
   
-      if (incomingPacket[0] == MSG_SLAVE_ACCEPTED) {
+      if (packetBuffer[0] == MSG_SLAVE_ACCEPTED) {
         masterIP = udp.remoteIP();
-        slaveID = incomingPacket[1];
+        slaveID = packetBuffer[1];
         break;
       } else {
         Serial.println("Packet was not a response from the game master");
@@ -42,38 +42,52 @@ void setupGameSlave() {
   }
 }
 
-void pollUDP() {
+void pollUDP(SlaveHitHandler onHit) {
   int packetSize = udp.parsePacket();
   if (packetSize > 0)
   {
     Serial.printf("Received %d bytes from %s, port %d\n", packetSize, udp.remoteIP().toString().c_str(), udp.remotePort());
-    int len = udp.read(incomingPacket, 255);
-    incomingPacket[len] = '\0';
-    Serial.printf("UDP packet contents: %s\n", incomingPacket);
+    int len = udp.read(packetBuffer, 255);
+    packetBuffer[len] = '\0';
+    Serial.printf("UDP packet contents: %s\n", packetBuffer);
 
     if (gameMaster) {
-      interpretPacketAsGameMaster(incomingPacket, len);
+      interpretPacketAsGameMaster(packetBuffer, len, onHit);
     } else {
-      interpretPacketAsGameSlave(incomingPacket, len);
+      interpretPacketAsGameSlave(packetBuffer, len);
     }
   }
 }
 
-void interpretPacketAsGameMaster(char* packet, int len) {
+void interpretPacketAsGameMaster(char* packet, int len, SlaveHitHandler onHit) {
   if (len == 0) {
     return;
   }
   
-  char packetType = incomingPacket[0];
+  char packetType = packetBuffer[0];
   if (packetType == MSG_SLAVE_ONLINE) {
-    acceptOnlinePacket(udp.remoteIP(), incomingPacket + 1, len - 1);
+    acceptOnlinePacket(udp.remoteIP(), packetBuffer + 1, len - 1);
+  } else if (packetType == MSG_SLAVE_TARGET_HIT) {
+    onHit(GameTargetID(packetBuffer[1]));
   } else {
     Serial.println("Unrecognized packet type\n");
   }
 }
 
 void interpretPacketAsGameSlave(char* packet, int len) {
-  Serial.println("Game slave is not yet implemented");
+  if (len == 0) {
+    return;
+  }
+
+  char packetType = packetBuffer[0];
+  if (packetType == MSG_CHANGE_STYLE) {
+    uint8_t t = (uint8_t)packetBuffer[1];
+    TargetStyles::Style idleStyle = (TargetStyles::Style)packetBuffer[2];
+    TargetStyles::Style hitStyle = (TargetStyles::Style)packetBuffer[3];
+    targetDisplays[t].styleIdle = idleStyle;
+    targetDisplays[t].styleHit = hitStyle;
+    targetDisplays[t].resetAnimation();
+  }
 }
 
 void acceptOnlinePacket(IPAddress ip, char* packet, int len) {
@@ -124,4 +138,39 @@ void acceptOnlinePacket(IPAddress ip, char* packet, int len) {
   Serial.print(clientID);
   Serial.print(" at ");
   Serial.println(ip.toString());
+}
+
+void notifyGameMasterOfHit(uint8_t target) {
+  GameTargetID id = GameTargetID(slaveID, target);
+
+  packetBuffer[0] = MSG_SLAVE_TARGET_HIT;
+  packetBuffer[1] = (char)id.data;
+  udp.beginPacket(masterIP, masterPort);
+  udpWrite(packetBuffer, 2);
+  udp.endPacket();
+  Serial.print("Informed master ");
+  Serial.print(target);
+  Serial.println("hit");
+}
+
+void changeSlaveTargetStyle(GameTargetID id, TargetStyles::Style idle, TargetStyles::Style hit) {
+  uint8_t client = id.client();
+
+  packetBuffer[0] = MSG_CHANGE_STYLE;
+  packetBuffer[1] = (char)id.target();
+  packetBuffer[2] = (char)idle;
+  packetBuffer[3] = (char)hit;
+  
+  udp.beginPacket(clients[client].ip, slavePort);
+  udpWrite(packetBuffer, 4);
+  udp.endPacket();
+  Serial.print("Instructd slave ");
+  Serial.print(client);
+  Serial.print(" at ");
+  Serial.print(clients[client].ip.toString());
+  Serial.print(':');
+  Serial.print(slavePort);
+  Serial.print(" to change target ");
+  Serial.print(id.target());
+  Serial.println(" styles");
 }
